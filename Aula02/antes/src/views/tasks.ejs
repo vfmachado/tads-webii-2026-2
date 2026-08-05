@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="pt-br">
+  <head>
+    <meta charset="utf-8" />
+    <title>Aula 02 - Tarefas (antes)</title>
+  </head>
+  <body>
+    <h1>Tarefas</h1>
+
+    <%
+      /* O template calcula contagens e formata dados sozinho — não existe
+         nenhuma camada de "View" que prepare isso antes de chegar aqui.
+         Se essa regra de contagem mudar, muda dentro do .ejs. */
+      const pendentes = tasks.filter((t) => t.status === 'pending');
+      const concluidas = tasks.filter((t) => t.status === 'done');
+    %>
+    <p><%= pendentes.length %> pendente(s), <%= concluidas.length %> concluída(s)</p>
+
+    <% if (tasks.length === 0) { %>
+      <p>Nenhuma tarefa cadastrada ainda.</p>
+    <% } else { %>
+      <ul>
+        <% tasks.forEach((task) => { %>
+          <%
+            const rotulo = task.status === 'done' ? 'Concluída ✅' : 'Pendente ⏳';
+            const dataFormatada = new Date(task.createdAt).toLocaleDateString('pt-BR');
+          %>
+          <li><strong><%= task.title %></strong> — <%= rotulo %> (criada em <%= dataFormatada %>)</li>
+        <% }) %>
+      </ul>
+    <% } %>
+  </body>
+</html>

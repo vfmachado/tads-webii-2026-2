@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="pt-br">
+  <head>
+    <meta charset="utf-8" />
+    <title>Aula 02 - Tarefas (depois)</title>
+  </head>
+  <body>
+    <h1>Tarefas</h1>
+
+    <!-- O template não filtra, não conta e não formata nada: só imprime
+         o que a View (taskView.ts) já deixou pronto em `tasks`. -->
+    <% if (tasks.length === 0) { %>
+      <p>Nenhuma tarefa cadastrada ainda.</p>
+    <% } else { %>
+      <ul>
+        <% tasks.forEach((task) => { %>
+          <li><strong><%= task.title %></strong> — <%= task.statusLabel %> (criada em <%= task.createdAtLabel %>)</li>
+        <% }) %>
+      </ul>
+    <% } %>
+  </body>
+</html>
