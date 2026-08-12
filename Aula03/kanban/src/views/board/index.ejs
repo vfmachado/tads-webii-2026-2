@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="pt-br">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Aula 03 - <%= board.name %></title>
+    <!-- CDN do Tailwind: escolha deliberada para manter o foco desta aula em
+         modularidade de backend, não em pipeline de build de CSS (isso é
+         Aula 15). Em produção, o caminho normal seria o Tailwind CLI/PostCSS
+         gerando um arquivo estático. -->
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-slate-100 min-h-screen">
+    <header class="bg-slate-900 text-white px-6 py-4">
+      <h1 class="text-xl font-semibold"><%= board.name %></h1>
+      <p class="text-slate-300 text-sm">
+        Aula 03 — template MVC para a turma implementar. Veja
+        <code class="bg-slate-800 px-1 rounded">aula03.md</code> para a lista de atividades.
+      </p>
+    </header>
+
+    <main class="p-6 flex gap-4 overflow-x-auto items-start">
+      <% board.columns.forEach((column) => { %>
+        <section class="bg-white rounded-lg shadow w-72 flex-shrink-0">
+          <header class="px-4 py-3 border-b flex items-center justify-between">
+            <h2 class="font-medium text-slate-700"><%= column.name %></h2>
+            <span
+              class="text-xs px-2 py-1 rounded-full <%= column.isOverWipLimit ? 'bg-red-100 text-red-700' : 'bg-slate-100 text-slate-500' %>"
+            ><%= column.cards.length %><%= column.wipLimit !== null ? '/' + column.wipLimit : '' %></span>
+          </header>
+
+          <ul class="p-3 space-y-2 min-h-[80px]">
+            <% if (column.cards.length === 0) { %>
+              <li class="text-sm text-slate-400 italic">Sem cartões</li>
+            <% } %>
+            <% column.cards.forEach((card) => { %>
+              <li class="border rounded-md p-3 shadow-sm">
+                <p class="text-sm font-medium text-slate-800"><%= card.title %></p>
+                <% if (card.description) { %>
+                  <p class="text-xs text-slate-500 mt-1"><%= card.description %></p>
+                <% } %>
+                <span class="inline-block mt-2 text-[11px] px-2 py-0.5 rounded-full <%= card.priorityBadgeClass %>">
+                  <%= card.priority %>
+                </span>
+              </li>
+            <% }) %>
+          </ul>
+
+          <!-- Este formulário já aponta para POST /cards, que hoje responde
+               501 (Atividade 1 ainda não implementada). Quando vocês
+               implementarem o CardController#create, o formulário passa a
+               funcionar sem precisar tocar nesta view. -->
+          <form method="post" action="/cards" class="p-3 border-t flex flex-col gap-2">
+            <input type="hidden" name="columnId" value="<%= column.id %>" />
+            <input
+              type="text"
+              name="title"
+              placeholder="Novo cartão..."
+              class="border rounded px-2 py-1 text-sm"
+            />
+            <button type="submit" class="text-xs bg-slate-800 text-white rounded px-2 py-1 hover:bg-slate-700">
+              Adicionar (ainda não implementado)
+            </button>
+          </form>
+        </section>
+      <% }) %>
+    </main>
+  </body>
+</html>
