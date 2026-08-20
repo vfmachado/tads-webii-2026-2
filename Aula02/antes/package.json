@@ -5,7 +5,7 @@
   "type": "module",
   "description": "Aula 02 - CRUD de tarefas SEM separação MVC: validação, regra de negócio, persistência e resposta HTTP misturadas no mesmo handler.",
   "scripts": {
-    "dev": "tsx src/index.ts",
+    "dev": "tsx src/index.ts --watch",
     "build": "tsc -p tsconfig.json",
     "start": "node dist/index.js",
     "test": "vitest run",
@@ -13,6 +13,7 @@
     "test:e2e": "vitest run test/e2e"
   },
   "dependencies": {
+    "body-parser": "^2.3.0",
     "ejs": "^6.0.1",
     "express": "^4.19.2"
   },

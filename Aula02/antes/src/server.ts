@@ -3,6 +3,7 @@ import { randomUUID } from 'node:crypto';
 import ejs from 'ejs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import bodyParser from 'body-parser';
 
 /**
  * Aula 02 — "ANTES": um CRUD de tarefas inteiro dentro dos handlers de rota.
@@ -37,9 +38,17 @@ interface Task {
 
 export function createServer(): Express {
   const app = express();
+  
+  // MIDDLEWARE - PARSER DO REQUEST BODY (req.body)
   app.use(express.json());
+  app.use(bodyParser.urlencoded());
+  // app.use(express.urlencoded({ extended: true }));
+  
+  // VIEW ENGINE
   app.engine('ejs', ejs.renderFile);
   app.set('view engine', 'ejs');
+  
+  // setar a pasta onde estarão os templates (views) do EJS
   app.set('views', path.join(__dirname, 'views'));
 
   // "Persistência": um array em memória, acessado diretamente pelos handlers.
@@ -49,6 +58,10 @@ export function createServer(): Express {
     // Passa os dados crus para o template — quem decide o que exibir e
     // como formatar é o próprio `.ejs`, não este handler nem uma "View".
     res.render('tasks', { tasks });
+  });
+
+  app.get('/webii', (_req: Request, res: Response) => {
+    res.render('webii');
   });
 
   app.post('/tasks', (req: Request, res: Response) => {
@@ -79,7 +92,8 @@ export function createServer(): Express {
     };
     tasks.push(task);
 
-    return res.status(201).json(task);
+    // return res.status(201).json(task);
+    res.redirect('/');
   });
 
   app.get('/tasks', (_req: Request, res: Response) => {
@@ -120,7 +134,7 @@ export function createServer(): Express {
     if (duplicate) {
       return res.status(409).json({ error: 'já existe uma tarefa pendente com este título' });
     }
-
+ 
     task.title = title;
     return res.status(200).json(task);
   });

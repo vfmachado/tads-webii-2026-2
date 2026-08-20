@@ -31,8 +31,12 @@ export class UserController {
   }
 
   async get(id: number) {
+    // FIND UNIQUE DO PRISMA
     const user = await this.prisma.user.findUnique({
-      where: { id },
+      where: { id },  // busca pelo id do usuário
+
+      // ALMA DO ORM
+      // permite buscar dados relacionados (posts, seguidores, seguindo) em uma única query
       include: {
         _count: { select: { posts: true, followers: true, following: true } },
       },
@@ -87,6 +91,9 @@ export class UserController {
     }
 
     return this.prisma.post.findMany({
+      // O FOLLOWER ID DE ALGUNS DOS SEGUIDORES DO AUTOR DO POST É O ID DO USUÁRIO LOGADO
+      // FEED SÃO OS POSTS DE TODOS QUE ESTOU SEGUINDO
+      // BUSCA AUTORES QUE ESTOU SEGUINDO
       where: { author: { followers: { some: { followerId: userId } } } },
       include: { author: true, tags: true },
       orderBy: { createdAt: 'desc' },

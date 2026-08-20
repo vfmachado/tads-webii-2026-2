@@ -14,6 +14,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
  * própria implementação sem tocar em `routes.ts` ou `TaskController`.
  */
 export function createServer(repository: TaskRepository = new InMemoryTaskRepository()): Express {
+  // configuracao do express e do server
   const app = express();
   app.use(express.json());
   app.engine('ejs', ejs.renderFile);

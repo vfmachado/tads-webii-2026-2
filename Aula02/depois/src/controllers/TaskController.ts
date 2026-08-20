@@ -27,6 +27,7 @@ export class TaskController {
   constructor(private readonly repository: TaskRepository) {}
 
   create(body: unknown): ControllerResult {
+    // etapa de validacao no req.body
     const title = (body as { title?: unknown })?.title;
     try {
       const task = Task.create(title as string);

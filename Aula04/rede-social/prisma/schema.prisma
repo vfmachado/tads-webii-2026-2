@@ -13,6 +13,8 @@ model User {
   email     String   @unique
   createdAt DateTime @default(now())
 
+  avatarUrl String?
+
   posts Post[]
 
   // Autorrelação N:N — User segue User, via tabela de junção explícita
@@ -20,6 +22,22 @@ model User {
   // "quem segue" e "quem é seguido").
   following Follow[] @relation("follower")
   followers Follow[] @relation("following")
+
+  // um usuario pode cadastrar multiplos endereços
+  addresses Address[]
+
+  // @@map("usuarios")  -- renomear a table
+} 
+
+model Address {
+  id      Int    @id @default(autoincrement())
+  street  String
+  city    String
+  state   String
+  zipCode String
+
+  userId Int
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Follow {

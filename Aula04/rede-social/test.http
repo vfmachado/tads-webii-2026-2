@@ -125,7 +125,7 @@ Content-Type: application/json
 ###
 
 ### Buscar um post específico (com author + tags via include)
-GET {{baseUrl}}/posts/{{createPost1.response.body.$.id}}
+GET {{baseUrl}}/posts/1
 
 ### =========================================================
 ### 4. Feed e busca por tag
@@ -137,7 +137,7 @@ GET {{baseUrl}}/users/{{createAna.response.body.$.id}}/feed
 ###
 
 ### Feed do Bruno — vazio, ele não segue ninguém
-GET {{baseUrl}}/users/{{createBruno.response.body.$.id}}/feed
+GET {{baseUrl}}/users/1/feed
 
 ###
 

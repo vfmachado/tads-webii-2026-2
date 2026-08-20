@@ -49,7 +49,11 @@ export class PostController {
   async get(id: number) {
     const post = await this.prisma.post.findUnique({
       where: { id },
-      include: { author: true, tags: true },
+      // inclui dados do author e das tags
+      include: { author: {
+        select: { name: true, avatarUrl: true }
+        // omit: {email: true, createdAt: true}
+      }, tags: true },
     });
     if (!post) {
       throw new PostNotFoundError(id);
@@ -60,6 +64,7 @@ export class PostController {
   async listByTag(name: string) {
     const tag = await this.prisma.tag.findUnique({
       where: { name },
+      // include de multilpos niveis
       include: { posts: { include: { author: true }, orderBy: { createdAt: 'desc' } } },
     });
     if (!tag) {

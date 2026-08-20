@@ -3,6 +3,8 @@ import { createServer } from './server.js';
 
 const PORT = process.env.PORT ? Number(process.env.PORT) : 3003;
 const prisma = createPrismaClient();
+
+// injeta no server a conexao do prisma
 const app = createServer(prisma);
 
 app.listen(PORT, () => {
