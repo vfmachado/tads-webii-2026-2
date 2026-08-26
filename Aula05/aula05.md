@@ -4,8 +4,6 @@
 
 Entender a diferença entre autenticação ("quem é você?") e autorização ("você pode fazer isso?"), implementar login baseado em sessão com hash de senha, e lidar com upload de arquivos por trás de uma abstração que permite trocar a implementação de armazenamento sem tocar no resto da aplicação. Ao final da aula, o estudante deve saber explicar como uma sessão de cookie funciona de ponta a ponta e por que autenticação e autorização são checagens separadas, feitas em momentos diferentes.
 
-**Nota de reordenação:** parte deste conteúdo (autenticação, autorização, sessões, hash de senhas) pertence originalmente à Aula 10 ("Segurança de sistemas web") do planejamento em [`../aulas.md`](../aulas.md). Ela foi antecipada para dar à turma um login funcional desde já, sobre o mesmo projeto de persistência (`rede-social/`) construído na [Aula 04](../Aula04/aula04.md) — sem login de verdade, `authorId` vinha do corpo da requisição e qualquer chamador podia postar como qualquer usuário.
-
 ## Conteúdos
 
 * **Autenticação x autorização** — perguntas diferentes: autenticação só confirma que existe alguém logado; autorização decide se essa pessoa pode agir sobre um recurso específico. Um usuário autenticado ainda pode ser barrado por autorização (ex.: apagar post de outra pessoa).
@@ -40,7 +38,3 @@ Sem `AWS_S3_BUCKET`/`AWS_REGION` configurados no `.env`, o upload cai automatica
 3. Logar como um usuário, criar um post; logar como um segundo usuário e tentar `POST /posts/:id/delete` no post do primeiro — observar o 403 vindo de `requireOwnPost`.
 4. Ler `AuthController.login` (`src/auth/AuthController.ts`) e discutir por que a mensagem de erro é idêntica para "e-mail não existe" e "senha errada".
 5. Desafio (estica): trocar a store da sessão de `MemoryStore` para outra (ex.: baseada em arquivo) e identificar o que muda — e o que não muda — no resto do código.
-
-## Discussão para aulas futuras
-
-Guardem a pergunta: `ImageStorage` já resolve, numa escala pequena, o mesmo problema que a arquitetura hexagonal resolve para o domínio inteiro — trocar uma implementação técnica sem que quem a usa perceba. Quando a disciplina tratar de arquitetura em camadas, hexagonal e Ports and Adapters, essa mesma ideia vai ser generalizada: em vez de só o upload de imagem, toda regra de negócio ficará isolada atrás de portas, com o Prisma (e qualquer outra tecnologia) entrando como adaptador substituível.
