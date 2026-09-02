@@ -26,7 +26,7 @@ export function createSessionMiddleware(): ReturnType<typeof session> {
     // de ambiente/secret manager — nunca hard-coded como aqui.
     secret: process.env.SESSION_SECRET ?? 'aula05-segredo-de-desenvolvimento',
     resave: false, // não regrava a sessão no store se nada mudou
-    saveUninitialized: false, // não cria sessão para visitantes que nunca logaram
+    saveUninitialized: true, // não cria sessão para visitantes que nunca logaram
     cookie: {
       httpOnly: true, // JavaScript no navegador não consegue ler o cookie (mitiga XSS)
       maxAge: 1000 * 60 * 60 * 24, // 24h

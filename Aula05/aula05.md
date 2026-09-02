@@ -38,3 +38,9 @@ Sem `AWS_S3_BUCKET`/`AWS_REGION` configurados no `.env`, o upload cai automatica
 3. Logar como um usuário, criar um post; logar como um segundo usuário e tentar `POST /posts/:id/delete` no post do primeiro — observar o 403 vindo de `requireOwnPost`.
 4. Ler `AuthController.login` (`src/auth/AuthController.ts`) e discutir por que a mensagem de erro é idêntica para "e-mail não existe" e "senha errada".
 5. Desafio (estica): trocar a store da sessão de `MemoryStore` para outra (ex.: baseada em arquivo) e identificar o que muda — e o que não muda — no resto do código.
+
+## Atividade guiada (para casa)
+
+[Curtidas e comentários](atividade-likes-comentarios.md) — o frontend (coração com contagem,
+ícone de comentários e página do post) já vem pronto no projeto; a atividade é implementar o
+backend: modelo de dados, controllers e as rotas que as views esperam.
