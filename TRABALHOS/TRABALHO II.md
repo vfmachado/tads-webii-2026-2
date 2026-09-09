@@ -54,9 +54,7 @@ Implementar, na ordem 1 → 6 (elas dependem umas das outras):
 7. Edição de comentário próprio (com o mesmo tipo de checagem de autorização de `requireOwnComment`).
 8. Atualização otimista no cliente: o botão de curtir muda de estado imediatamente ao clique, antes da resposta do servidor chegar, com rollback visual se o `fetch` falhar.
 9. Ordenar comentários por mais curtidos (em vez de só por data).
-10. Reordenar as fotos de um carrossel já postado (arrastar para mudar o campo `order` de `PostImage`).
-11. Expor a paginação por cursor também na API JSON somente-leitura da Aula 04 (`src/routes.ts`), sem duplicar a lógica do endpoint usado pelo scroll infinito.
-12. "Notificação" simples e não realtime: contador de "novas curtidas/comentários desde seu último acesso", calculado a partir de `createdAt`.
+10. "Notificação" simples e não realtime: contador de "novas curtidas/comentários desde seu último acesso", calculado a partir de `createdAt`.
 
 ## Critérios de avaliação
 
