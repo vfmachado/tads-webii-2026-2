@@ -1,0 +1,104 @@
+/* CSS simples de propósito — o assunto desta aula é o protocolo WebSocket,
+   não layout. Nada aqui precisa de explicação em aula. */
+body {
+  font-family: system-ui, sans-serif;
+  margin: 0;
+  color: #1a1a1a;
+}
+
+header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 1.25rem;
+  border-bottom: 1px solid #ddd;
+}
+
+.status {
+  font-size: 0.8rem;
+  padding: 0.15rem 0.6rem;
+  border-radius: 999px;
+  font-weight: 600;
+}
+
+.status-disconnected { background: #fdecea; color: #c0392b; }
+.status-connecting { background: #fff8e1; color: #b8860b; }
+.status-connected { background: #e8f8f0; color: #1e8449; }
+
+main {
+  display: flex;
+  gap: 1.5rem;
+  padding: 1.25rem;
+}
+
+aside {
+  width: 220px;
+  flex-shrink: 0;
+}
+
+aside ul {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 1rem;
+}
+
+aside li {
+  padding: 0.3rem 0.5rem;
+  border-radius: 6px;
+  background: #f4f4f4;
+  margin-bottom: 0.25rem;
+  font-size: 0.9rem;
+}
+
+#join-form,
+#message-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+#message-form {
+  flex-direction: row;
+}
+
+#message-form input {
+  flex: 1;
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.85rem;
+  gap: 0.2rem;
+}
+
+input,
+button {
+  font: inherit;
+  padding: 0.4rem 0.5rem;
+}
+
+section#chat {
+  flex: 1;
+  max-width: 640px;
+}
+
+#messages {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 1rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  height: 360px;
+  overflow-y: auto;
+  padding: 0.5rem;
+}
+
+#messages li {
+  margin-bottom: 0.4rem;
+  font-size: 0.9rem;
+}
+
+#messages li.own { color: #1a5276; font-weight: 600; }
+#messages li.system { color: #888; font-style: italic; }
+#messages li.error { color: #c0392b; }

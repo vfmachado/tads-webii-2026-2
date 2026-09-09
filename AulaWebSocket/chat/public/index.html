@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="pt-br">
+  <head>
+    <meta charset="utf-8" />
+    <title>AulaWebSocket - chat por canais</title>
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+  <body>
+    <header>
+      <h1>AulaWebSocket</h1>
+      <span id="status" class="status status-disconnected">desconectado</span>
+    </header>
+
+    <main>
+      <aside>
+        <h2>Canais ativos</h2>
+        <!-- Preenchido via GET /api/channels (HTTP comum, não WebSocket) -->
+        <ul id="channel-list"></ul>
+
+        <form id="join-form">
+          <label>
+            Seu nome
+            <input id="username" type="text" required maxlength="24" placeholder="ex.: Ana" />
+          </label>
+          <label>
+            Canal
+            <input id="channel" type="text" required maxlength="24" placeholder="ex.: geral" />
+          </label>
+          <button type="submit">Entrar no canal</button>
+        </form>
+      </aside>
+
+      <section id="chat" hidden>
+        <h2 id="current-channel"></h2>
+        <ul id="messages"></ul>
+        <form id="message-form">
+          <input id="message-text" type="text" autocomplete="off" placeholder="Escreva uma mensagem..." />
+          <button type="submit">Enviar</button>
+        </form>
+      </section>
+    </main>
+
+    <script type="module" src="/main.js"></script>
+  </body>
+</html>
