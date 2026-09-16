@@ -4,8 +4,6 @@
 
 Separar regra de negócio de detalhes tecnológicos (framework, banco, HTTP) de forma explícita no código Node/TS. Ao final da aula, o estudante deve saber apontar, em qualquer arquivo do projeto desta pasta, se ele é domínio, porta, caso de uso ou adaptador — e explicar por que a seta de dependência entre essas camadas só pode apontar para dentro.
 
-**Nota de reordenação:** este é o conteúdo da "Aula 5" original do planejamento em [`../aulas.md`](../aulas.md). Ele foi deslocado para a Aula 06 porque a Aula 05 antecipou parte da Aula 10 (autenticação e autorização) sobre o projeto `rede-social` — ver [`../Aula05/aula05.md`](../Aula05/aula05.md). Esta aula usa um projeto novo (gerenciamento de projetos) para apresentar a arquitetura hexagonal "do zero", sem competir com as decisões de framework/persistência já tomadas em `rede-social`.
-
 ## Conteúdos
 
 * Arquitetura em camadas x hexagonal x Clean Architecture — o que cada uma resolve.
