@@ -1,0 +1,37 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Contact {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String?
+  phone     String?
+  // Canais que o contato NÃO quer receber, separados por vírgula (ex.: "sms,email").
+  optOut    String   @default("")
+  createdAt DateTime @default(now())
+
+  notifications Notification[]
+}
+
+model Notification {
+  id         Int       @id @default(autoincrement())
+  // "fake" | "sms" | "email"
+  channel    String
+  subject    String?
+  message    String
+  // "PENDING" | "SENT" | "FAILED"
+  status     String    @default("PENDING")
+  attempts   Int       @default(0)
+  lastError  String?
+  providerId String?
+  createdAt  DateTime  @default(now())
+  sentAt     DateTime?
+
+  contactId Int
+  contact   Contact @relation(fields: [contactId], references: [id], onDelete: Cascade)
+}

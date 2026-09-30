@@ -1,0 +1,48 @@
+@base = http://localhost:3007
+
+### Cria um contato com e-mail e telefone
+POST {{base}}/contacts
+Content-Type: application/json
+
+{ "name": "Ana", "email": "ana@ifrs.edu.br", "phone": "+5551999998888" }
+
+### Cria um contato que não quer receber SMS
+POST {{base}}/contacts
+Content-Type: application/json
+
+{ "name": "Beto", "email": "beto@ifrs.edu.br", "optOut": ["sms"] }
+
+### Lista contatos
+GET {{base}}/contacts
+
+### Envia por três canais de uma vez
+POST {{base}}/notifications
+Content-Type: application/json
+
+{
+  "contactId": 1,
+  "channels": ["fake", "sms", "email"],
+  "subject": "Matrícula",
+  "message": "Sua matrícula foi confirmada"
+}
+
+### Envio que falha na validação (opt-out de SMS e e-mail sem subject)
+POST {{base}}/notifications
+Content-Type: application/json
+
+{ "contactId": 2, "channels": ["sms", "email"], "message": "Mensagem sem assunto" }
+
+### Lista notificações com falha
+GET {{base}}/notifications?status=failed
+
+### Filtra por canal e contato
+GET {{base}}/notifications?channel=sms&contactId=1
+
+### Detalhe de uma notificação
+GET {{base}}/notifications/1
+
+### Reenvia uma notificação que falhou
+POST {{base}}/notifications/2/retry
+
+### Caixa de entrada do canal fake
+GET {{base}}/fake-inbox/1
