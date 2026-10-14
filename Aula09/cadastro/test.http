@@ -1,0 +1,80 @@
+@base = http://localhost:3009
+
+### 1. Cadastrar (o código aparece no console ou chega por e-mail)
+POST {{base}}/users
+Content-Type: application/json
+
+{ "name": "Fernando", "email": "vinicius.machado@riogrande.ifrs.edu.br" }
+
+### 2. Listar usuários (verified: false)
+GET {{base}}/users
+
+### 3. Verificar — troque pelo código recebido
+POST {{base}}/users/verify
+Content-Type: application/json
+
+{ "email": "vinicius.machado@riogrande.ifrs.edu.br", "code": "856323" }
+
+### Erro: e-mail duplicado (409)
+POST {{base}}/users
+Content-Type: application/json
+
+{ "name": "Ana", "email": "ana@ifrs.edu.br" }
+
+### Erro: e-mail inválido (400)
+POST {{base}}/users
+Content-Type: application/json
+
+{ "name": "Bruno", "email": "bruno-sem-arroba" }
+
+### Erro: usuário inexistente (404)
+POST {{base}}/users/verify
+Content-Type: application/json
+
+{ "email": "ninguem@ifrs.edu.br", "code": "123456" }
+
+### --- Aula 09: erros de FORMATO, barrados pelo Zod no adaptador HTTP ---
+
+### Zod: corpo vazio -> 400 com a lista de campos
+POST {{base}}/users
+Content-Type: application/json
+
+{}
+
+### Zod: tipos errados -> 400 apontando "name" e "email"
+POST {{base}}/users
+Content-Type: application/json
+
+{ "name": 42, "email": "bruno-sem-arroba" }
+
+### Zod: código com formato errado -> 400 (nem chega no caso de uso)
+POST {{base}}/users/verify
+Content-Type: application/json
+
+{ "email": "ana@ifrs.edu.br", "code": "12ab" }
+
+### Zod deixa passar, DOMÍNIO barra: nome com 1 letra -> 400 do InvalidUserDataError
+POST {{base}}/users
+Content-Type: application/json
+
+{ "name": "A", "email": "a@ifrs.edu.br" }
+
+### Campo extra é descartado pelo Zod: o usuário continua verified: false
+POST {{base}}/users
+Content-Type: application/json
+
+{ "name": "Carla", "email": "carla@ifrs.edu.br", "verified": true }
+
+### --- Aula 09: CQRS — queries com filtro e paginação (query string validada pelo Zod) ---
+
+### Todos (página 1, 10 por página, ordem alfabética)
+GET {{base}}/users
+
+### Só os verificados
+GET {{base}}/users?verified=true
+
+### Não verificados, 1 por página, página 2
+GET {{base}}/users?verified=false&pageSize=1&page=2
+
+### Zod: query inválida -> 400 com os três campos
+GET {{base}}/users?verified=talvez&page=0&pageSize=999

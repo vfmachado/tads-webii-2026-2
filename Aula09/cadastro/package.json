@@ -1,0 +1,27 @@
+{
+  "name": "aula09-cadastro",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Aula 09 - API de cadastro em arquitetura hexagonal com validação de requests usando Zod no adaptador HTTP.",
+  "scripts": {
+    "dev": "tsx src/index.ts",
+    "dev:watch": "tsx watch src/index.ts",
+    "test": "tsx --test test/*.test.ts",
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "express": "^5.1.0",
+    "nodemailer": "^10.0.16",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.3",
+    "@types/node": "^24.0.0",
+    "@types/nodemailer": "^8.0.2",
+    "tsx": "^4.23.12",
+    "typescript": "^5.9.0"
+  }
+}
