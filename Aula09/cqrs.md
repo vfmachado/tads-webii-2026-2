@@ -18,7 +18,7 @@ E o mesmo `UserRepository` servia aos dois lados:
 
 ```ts
 interface UserRepository {
-  findByEmail(email: string): Promise<User | undefined>;  // usado para ESCREVER
+  findByEmail(email: string): Promise<User | undefined>;  // usado pelos commands (carrega a entidade para alterar)
   findAll(): Promise<User[]>;                             // usado só para LER
   save(user: User): Promise<void>;                        // usado para ESCREVER
 }

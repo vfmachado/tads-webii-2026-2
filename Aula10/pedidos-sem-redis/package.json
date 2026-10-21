@@ -1,0 +1,26 @@
+{
+  "name": "aula10-pedidos-sem-redis",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Aula 10 (versão 1) - API de pedidos SEM Redis: listagem sempre vai ao banco e pedidos concorrentes vendem mais do que o estoque.",
+  "scripts": {
+    "dev": "tsx src/index.ts",
+    "dev:watch": "tsx watch src/index.ts",
+    "test": "tsx --test --test-concurrency=1 test/*.test.ts",
+    "ataque": "tsx scripts/ataque.ts",
+    "listagem": "tsx scripts/listagem.ts",
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "express": "^5.1.0",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.3",
+    "@types/node": "^24.0.0",
+    "tsx": "^4.23.12",
+    "typescript": "^5.9.0"
+  }
+}

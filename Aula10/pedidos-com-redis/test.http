@@ -1,0 +1,39 @@
+@base = http://localhost:3010
+
+### Listar produtos (vitrine) — 1ª chamada: [cache] MISS + SELECT de 300 ms; as seguintes: [cache] HIT
+GET {{base}}/products
+
+### Fazer um pedido
+POST {{base}}/orders
+Content-Type: application/json
+
+{ "productId": "camiseta", "quantity": 1 }
+
+### Listar pedidos
+GET {{base}}/orders
+
+### Erro: produto inexistente (404)
+POST {{base}}/orders
+Content-Type: application/json
+
+{ "productId": "bone", "quantity": 1 }
+
+### Erro: quantidade inválida (400, Zod)
+POST {{base}}/orders
+Content-Type: application/json
+
+{ "productId": "camiseta", "quantity": 0 }
+
+### Erro: estoque insuficiente (409) — a caneca tem 50
+POST {{base}}/orders
+Content-Type: application/json
+
+{ "productId": "caneca", "quantity": 10 }
+
+### --- Só para a aula ---
+
+### Quantas consultas chegaram ao banco e quantas o cache respondeu
+GET {{base}}/debug/stats
+
+### Voltar ao estoque inicial, apagar os pedidos e o cache
+POST {{base}}/debug/reset

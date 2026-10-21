@@ -1,0 +1,27 @@
+{
+  "name": "aula10-pedidos-com-redis",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Aula 10 (versão 2) - API de pedidos COM Redis: cache na listagem de produtos e lock distribuído no pedido.",
+  "scripts": {
+    "dev": "tsx src/index.ts",
+    "dev:watch": "tsx watch src/index.ts",
+    "test": "tsx --test --test-concurrency=1 test/*.test.ts",
+    "ataque": "tsx scripts/ataque.ts",
+    "listagem": "tsx scripts/listagem.ts",
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "express": "^5.1.0",
+    "redis": "^6.3.0",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.3",
+    "@types/node": "^24.0.0",
+    "tsx": "^4.23.12",
+    "typescript": "^5.9.0"
+  }
+}

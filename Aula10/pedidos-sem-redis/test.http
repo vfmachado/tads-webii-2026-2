@@ -1,0 +1,39 @@
+@base = http://localhost:3010
+
+### Listar produtos (vitrine) — olhe o terminal da API: 1 SELECT de 300 ms por chamada
+GET {{base}}/products
+
+### Fazer um pedido
+POST {{base}}/orders
+Content-Type: application/json
+
+{ "productId": "camiseta", "quantity": 1 }
+
+### Listar pedidos
+GET {{base}}/orders
+
+### Erro: produto inexistente (404)
+POST {{base}}/orders
+Content-Type: application/json
+
+{ "productId": "bone", "quantity": 1 }
+
+### Erro: quantidade inválida (400, Zod)
+POST {{base}}/orders
+Content-Type: application/json
+
+{ "productId": "camiseta", "quantity": 0 }
+
+### Erro: estoque insuficiente (409) — a caneca tem 50
+POST {{base}}/orders
+Content-Type: application/json
+
+{ "productId": "caneca", "quantity": 10 }
+
+### --- Só para a aula ---
+
+### Quantas consultas chegaram ao banco
+GET {{base}}/debug/stats
+
+### Voltar ao estoque inicial e apagar os pedidos
+POST {{base}}/debug/reset

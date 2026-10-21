@@ -1,0 +1,22 @@
+# Sobe o Redis da Aula 10:
+#
+#   docker compose up -d                        # sobe em segundo plano (localhost:6379)
+#   docker compose exec redis redis-cli monitor # mostra, ao vivo, cada comando que a API manda
+#   docker compose exec redis redis-cli         # console interativo (KEYS *, GET cache:products, TTL ...)
+#   docker compose down                         # derruba
+#
+# A API roda fora do Docker (`npm run dev`), como nas aulas anteriores.
+
+services:
+  redis:
+    image: redis:7.4-alpine
+    container_name: aula10-redis
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    # Sem persistência em disco: para a aula, o Redis é só cache e lock.
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 2s
+      timeout: 2s
+      retries: 10
