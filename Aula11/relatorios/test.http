@@ -1,0 +1,65 @@
+@base = http://localhost:3011
+
+### 1. Pedir um relatório (responde 202 na hora; o worker processa depois)
+# @name pedido
+POST {{base}}/reports
+Content-Type: application/json
+
+{
+  "email": "ana@exemplo.com",
+  "filters": { "from": "2026-01-01", "to": "2026-03-31", "region": "Sul" }
+}
+
+### 2. Consultar o status (PENDING → COMPLETED). Repita até mudar.
+GET {{base}}/reports/{{pedido.response.body.id}}
+
+### 3. Baixar (302 para uma presigned URL do S3, válida por 5 minutos)
+GET {{base}}/reports/{{pedido.response.body.id}}/download
+
+### Listar os últimos relatórios
+GET {{base}}/reports?limit=20
+
+### Relatório pesado: um ano inteiro (~6,5 s no worker)
+POST {{base}}/reports
+Content-Type: application/json
+
+{
+  "email": "ana@exemplo.com",
+  "filters": { "from": "2026-01-01", "to": "2026-12-31" }
+}
+
+### Relatório leve: um dia, só Eletrônicos (~1 s no worker)
+POST {{base}}/reports
+Content-Type: application/json
+
+{
+  "email": "bruno@exemplo.com",
+  "filters": { "from": "2026-03-15", "to": "2026-03-15", "category": "Eletrônicos" }
+}
+
+### Erro de formato (Zod): e-mail inválido, data inválida, região desconhecida -> 400
+POST {{base}}/reports
+Content-Type: application/json
+
+{
+  "email": "nao-e-email",
+  "filters": { "from": "2026-02-30", "to": "2026-03-01", "region": "Marte" }
+}
+
+### Erro de regra (domínio): período maior que 1 ano -> 400
+POST {{base}}/reports
+Content-Type: application/json
+
+{
+  "email": "ana@exemplo.com",
+  "filters": { "from": "2025-01-01", "to": "2026-12-31" }
+}
+
+### Download de um relatório ainda PENDING -> 409 (rode logo depois de pedir o de 1 ano)
+GET {{base}}/reports/{{pedido.response.body.id}}/download
+
+### Relatório inexistente -> 404
+GET {{base}}/reports/00000000-0000-4000-8000-000000000000
+
+### --- Mailpit (e-mails enviados pelo serviço de notificações) ---
+GET http://localhost:8025/api/v1/messages

@@ -1,0 +1,215 @@
+# Aula 11 — Relatórios assíncronos com Kafka
+#
+#   docker compose up -d --build                          # sobe tudo (1 worker)
+#   docker compose up -d --scale relatorios-worker=3      # 3 workers no mesmo grupo
+#   docker compose logs -f relatorios-worker              # acompanha os workers
+#   docker compose --profile carga run --rm k6            # teste de carga (k6)
+#   docker compose down                                   # derruba e APAGA tudo (sem volumes)
+#
+# Interfaces web:
+#   http://localhost:3011/reports         API de relatórios
+#   http://localhost:8080                 Kafka UI (tópicos, partições, mensagens, lag)
+#   http://localhost:8025                 Mailpit (caixa de entrada dos e-mails)
+#   http://localhost:9001/rustfs/console/ RustFS (o "S3": usuário aula11 / senha aula11-secret)
+#
+# Os serviços Node também podem rodar FORA do Docker (`npm run dev`), apontando
+# para o Kafka em localhost:9094: suba só a infraestrutura com
+#   docker compose up -d kafka kafka-init kafka-ui rustfs mailpit
+
+name: aula11-relatorios
+
+x-kafka-env: &kafka-env
+  KAFKA_BROKERS: kafka:9092
+
+x-s3-env: &s3-env
+  S3_REGION: us-east-1
+  S3_ACCESS_KEY: aula11
+  S3_SECRET_KEY: aula11-secret
+
+services:
+  # ---------------------------------------------------------------------------
+  # Infraestrutura
+  # ---------------------------------------------------------------------------
+
+  # Kafka 3.9 em modo KRaft (sem ZooKeeper): um único nó que é ao mesmo tempo
+  # BROKER (guarda as mensagens) e CONTROLLER (guarda os metadados do cluster).
+  kafka:
+    image: apache/kafka:3.9.1
+    container_name: aula11-kafka
+    ports:
+      - "9094:9094"
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      # Dois "endereços" para o mesmo broker:
+      #   PLAINTEXT kafka:9092     → para quem está DENTRO da rede do Docker
+      #   EXTERNAL  localhost:9094 → para quem está no seu computador (npm run dev)
+      # O cliente conecta no endereço que conhece e recebe de volta o
+      # ADVERTISED, que é por onde ele vai falar com o broker dali em diante.
+      KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093,EXTERNAL://:9094
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,EXTERNAL://localhost:9094
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      # Um nó só: não há como replicar em 3. Em produção, use 3 brokers e fator 3.
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      # Tópicos são criados de propósito, pelo kafka-init (nada de tópico com nome errado criado por engano).
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
+      # Sem esperar 3 s antes do primeiro rebalanceamento (agiliza a demonstração).
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_HEAP_OPTS: -Xms256m -Xmx512m
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server localhost:9092 > /dev/null 2>&1"]
+      interval: 5s
+      timeout: 10s
+      retries: 20
+      start_period: 10s
+
+  # Cria os tópicos e termina. Os outros serviços só sobem depois dele.
+  kafka-init:
+    image: apache/kafka:3.9.1
+    container_name: aula11-kafka-init
+    depends_on:
+      kafka:
+        condition: service_healthy
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        set -e
+        T=/opt/kafka/bin/kafka-topics.sh
+        for topic in report.requested report.completed report.failed; do
+          $$T --bootstrap-server kafka:9092 --create --if-not-exists --topic $$topic --partitions 3 --replication-factor 1
+        done
+        $$T --bootstrap-server kafka:9092 --describe
+        # Um consumidor rápido força a criação do tópico interno __consumer_offsets
+        # (onde o Kafka guarda o offset de cada grupo). Sem isso, o 1º serviço a
+        # subir veria um "group coordinator is not available" passageiro.
+        /opt/kafka/bin/kafka-console-consumer.sh --bootstrap-server kafka:9092 \
+          --topic report.failed --group kafka-init --timeout-ms 3000 > /dev/null 2>&1 || true
+        echo "Tópicos prontos."
+
+  # Interface web para ver tópicos, partições, mensagens e grupos de consumidores.
+  kafka-ui:
+    image: kafbat/kafka-ui:v1.3.0
+    container_name: aula11-kafka-ui
+    ports:
+      - "8080:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: aula11
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
+    depends_on:
+      kafka:
+        condition: service_healthy
+
+  # Storage compatível com a API do S3 (substitui o S3 da AWS na aula).
+  rustfs:
+    image: rustfs/rustfs:1.0.4
+    container_name: aula11-rustfs
+    ports:
+      - "9000:9000" # API S3
+      - "9001:9001" # console web
+    environment:
+      RUSTFS_ACCESS_KEY: aula11
+      RUSTFS_SECRET_KEY: aula11-secret
+      RUSTFS_CONSOLE_ENABLE: "true"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fs http://localhost:9000/health > /dev/null"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  # Servidor SMTP de mentira: aceita qualquer e-mail e mostra numa caixa de entrada web.
+  mailpit:
+    image: axllent/mailpit:v1.27
+    container_name: aula11-mailpit
+    ports:
+      - "8025:8025" # web
+      - "1025:1025" # SMTP
+    healthcheck:
+      test: ["CMD", "/mailpit", "readyz"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  # ---------------------------------------------------------------------------
+  # Microsserviços
+  # ---------------------------------------------------------------------------
+
+  # Recebe o pedido (POST /reports → 202), publica em report.requested e
+  # acompanha report.completed / report.failed para responder o status.
+  relatorios-api:
+    build: ./relatorios-api
+    image: aula11/relatorios-api
+    container_name: aula11-relatorios-api
+    ports:
+      - "3011:3011"
+    environment:
+      <<: [*kafka-env, *s3-env]
+      PORT: 3011
+      # A presigned URL é aberta pelo NAVEGADOR: precisa do endereço que o host enxerga.
+      S3_PUBLIC_ENDPOINT: http://localhost:9000
+    # Tempo para sair do grupo de consumidores com calma (~4 s) antes do SIGKILL.
+    stop_grace_period: 15s
+    depends_on:
+      kafka-init:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3011/health > /dev/null"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  # Escalável: `--scale relatorios-worker=N`. Sem container_name (cada réplica
+  # ganha um nome e um hostname diferentes, que aparecem como `processedBy`).
+  relatorios-worker:
+    build: ./relatorios-worker
+    image: aula11/relatorios-worker
+    environment:
+      <<: [*kafka-env, *s3-env]
+      S3_ENDPOINT: http://rustfs:9000
+      S3_BUCKET: relatorios
+      REPORT_BASE_MS: ${REPORT_BASE_MS:-1000}
+      REPORT_MS_PER_DAY: ${REPORT_MS_PER_DAY:-15}
+      REPORT_FAILURE_RATE: ${REPORT_FAILURE_RATE:-0}
+    # Tempo para terminar o relatório atual e sair do grupo antes do SIGKILL.
+    stop_grace_period: 30s
+    depends_on:
+      kafka-init:
+        condition: service_completed_successfully
+      rustfs:
+        condition: service_healthy
+
+  notificacoes:
+    build: ./notificacoes
+    image: aula11/notificacoes
+    container_name: aula11-notificacoes
+    environment:
+      <<: *kafka-env
+      PUBLIC_API_URL: http://localhost:3011
+      EMAIL_STRATEGY: smtp
+      SMTP_HOST: mailpit
+      SMTP_PORT: 1025
+    stop_grace_period: 15s
+    depends_on:
+      kafka-init:
+        condition: service_completed_successfully
+      mailpit:
+        condition: service_healthy
+
+  # ---------------------------------------------------------------------------
+  # Teste de carga (só sobe quando pedido: --profile carga)
+  # ---------------------------------------------------------------------------
+  k6:
+    image: grafana/k6:1.3.0
+    profiles: ["carga"]
+    volumes:
+      - ./e2e/k6:/scripts:ro
+    environment:
+      BASE_URL: http://relatorios-api:3011
+    command: ["run", "/scripts/solicitar-relatorios.js"]
+    depends_on:
+      relatorios-api:
+        condition: service_healthy
