@@ -1,0 +1,107 @@
+# Aula 12 — Tarefas: PostgreSQL + API (Node) + frontend React estático (nginx)
+#
+#   cp .env.example .env
+#   docker compose up -d --build --wait     # sobe tudo e espera ficar saudável
+#   docker compose ps                       # db, api, web "healthy"; migrate "Exited (0)"
+#   docker compose --profile smoke run --rm smoke   # valida o fluxo principal
+#   docker compose down                     # derruba (o volume com os dados fica)
+#   docker compose down -v                  # derruba E APAGA os dados
+#
+# http://localhost:8090 → o sistema (front + /api).
+
+name: tarefas
+
+services:
+  # ---------------------------------------------------------------------------
+  # Banco de dados
+  # ---------------------------------------------------------------------------
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-tarefas}
+      # `:?` faz o compose FALHAR com mensagem se a variável não existir.
+      # Segredo nunca tem valor padrão no arquivo versionado.
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?defina POSTGRES_PASSWORD no .env}
+      POSTGRES_DB: ${POSTGRES_DB:-tarefas}
+    volumes:
+      # Volume NOMEADO: os dados sobrevivem a `down` e a recriação do contêiner.
+      - pgdata:/var/lib/postgresql/data
+    # Sem `ports:` → o banco NÃO é acessível de fora da rede do Compose.
+    # (Para acessá-lo em desenvolvimento, use o docker-compose.dev.yml.)
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
+
+  # ---------------------------------------------------------------------------
+  # Migrations: serviço "one-shot". Roda, aplica o que falta e sai (Exited 0).
+  # A API só sobe depois que ele termina com sucesso.
+  # ---------------------------------------------------------------------------
+  migrate:
+    image: tarefas-api:${TAG:-local}
+    build:
+      context: ./api
+      target: runtime
+      args:
+        APP_VERSION: ${TAG:-local}
+    command: ["node", "dist/migrate.js"]
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER:-tarefas}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-tarefas}
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+
+  # ---------------------------------------------------------------------------
+  # API
+  # ---------------------------------------------------------------------------
+  api:
+    image: tarefas-api:${TAG:-local}   # a MESMA imagem do migrate
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: "3000"
+      DATABASE_URL: postgres://${POSTGRES_USER:-tarefas}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-tarefas}
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    stop_grace_period: 10s
+    # O healthcheck vem do Dockerfile (GET /api/ready).
+
+  # ---------------------------------------------------------------------------
+  # Frontend: build estático do React + nginx (que também faz proxy de /api)
+  # ---------------------------------------------------------------------------
+  web:
+    image: tarefas-web:${TAG:-local}
+    build:
+      context: ./web
+      target: runtime
+    restart: unless-stopped
+    ports:
+      - "${WEB_PORT:-8090}:8080"
+    depends_on:
+      api:
+        condition: service_healthy
+
+  # ---------------------------------------------------------------------------
+  # Smoke test pós-deploy (só roda quando pedido: --profile smoke)
+  # ---------------------------------------------------------------------------
+  smoke:
+    profiles: ["smoke"]
+    image: node:24-alpine
+    working_dir: /e2e
+    volumes:
+      - ./e2e:/e2e:ro
+    environment:
+      BASE_URL: http://web:8080
+      EXPECTED_VERSION: ${EXPECTED_VERSION:-}
+    command: ["node", "--test", "smoke.test.mjs"]
+    depends_on:
+      web:
+        condition: service_healthy
+
+volumes:
+  pgdata:

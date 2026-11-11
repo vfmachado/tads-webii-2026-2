@@ -1,0 +1,17 @@
+# Override de DESENVOLVIMENTO: abre portas para você usar o banco e a API
+# direto do seu computador (psql, DBeaver, `npm run dev` fora do Docker).
+# NUNCA use em produção: expõe o banco.
+#
+#   docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d db
+#   cd api && DATABASE_URL=postgres://tarefas:tarefas@localhost:5432/tarefas npm run migrate && npm run dev
+#   cd web && npm run dev            # http://localhost:5173 (proxy de /api → :3000)
+#
+# O segundo -f MESCLA com o primeiro: só o que está aqui é acrescentado/alterado.
+
+services:
+  db:
+    ports:
+      - "127.0.0.1:5432:5432"        # só acessível do próprio computador
+  api:
+    ports:
+      - "127.0.0.1:3000:3000"
