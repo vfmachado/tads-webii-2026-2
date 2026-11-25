@@ -1,0 +1,12 @@
+# Plugins baixados pelo `tofu init` (recriados a qualquer momento)
+.terraform/
+# STATE: o mapa entre o código e o que existe no cluster. Contém a senha do
+# banco em texto puro. Em equipe, ele mora num backend remoto (S3, GCS,
+# Terraform Cloud) com lock, nunca no git.
+*.tfstate
+*.tfstate.*
+# Gerados pelos scripts (versão no ar e cenário ativo)
+*.auto.tfvars
+# Planos salvos (`tofu plan -out`) também contêm segredos
+*.tfplan
+# .terraform.lock.hcl NÃO está aqui: ele VAI para o git (versões exatas dos providers).

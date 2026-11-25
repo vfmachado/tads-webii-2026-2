@@ -1,0 +1,40 @@
+# Ambiente de TESTES: um Postgres descartável + a suíte completa da API.
+#
+#   docker compose -f docker-compose.test.yml up --build --abort-on-container-exit --exit-code-from api-test
+#   docker compose -f docker-compose.test.yml down -v
+#
+# O código de saída do comando é o da suíte (0 = passou), o que permite usar
+# o mesmo comando no seu terminal e no CI.
+#
+# Projeto com NOME PRÓPRIO (`tarefas-test`): não colide com o ambiente "real"
+# nem apaga o volume dele.
+
+name: tarefas-test
+
+services:
+  db-test:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: test
+      POSTGRES_PASSWORD: test
+      POSTGRES_DB: tarefas_test      # o teste exige o sufixo _test
+    # tmpfs = banco em MEMÓRIA: mais rápido e não deixa lixo no disco.
+    tmpfs:
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U test -d tarefas_test"]
+      interval: 2s
+      timeout: 2s
+      retries: 20
+
+  api-test:
+    build:
+      context: ./api
+      target: test                   # estágio com devDependencies e testes
+    environment:
+      NODE_ENV: test
+      DATABASE_URL: postgres://test:test@db-test:5432/tarefas_test
+    depends_on:
+      db-test:
+        condition: service_healthy
+    command: ["npm", "test"]         # unitários + integração

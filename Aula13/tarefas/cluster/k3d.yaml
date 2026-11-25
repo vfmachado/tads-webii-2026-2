@@ -1,0 +1,32 @@
+# O CLUSTER como código. Um Kubernetes de verdade (k3s), cujos "nós" são
+# contêineres Docker na sua máquina.
+#
+#   k3d cluster create --config cluster/k3d.yaml     (ou scripts/cluster-up.sh)
+#   k3d cluster delete aula13                         (ou scripts/cluster-down.sh)
+#
+# Na nuvem, esta camada seria outro recurso Terraform (aws_eks_cluster,
+# google_container_cluster...). Aqui ela fica num arquivo próprio porque o
+# cluster precisa EXISTIR antes de o Terraform de infra/ conseguir falar com ele.
+apiVersion: k3d.io/v1alpha5
+kind: Simple
+metadata:
+  name: aula13
+servers: 1          # control plane (API server, scheduler, controllers)
+agents: 2           # nós de trabalho: os pods se espalham entre eles
+image: rancher/k3s:v1.35.5-k3s1   # versão FIXA do Kubernetes: todos os alunos com o mesmo cluster
+ports:
+  # localhost:8013 → load balancer do k3d → Traefik (Ingress) → Service web
+  - port: 8013:80
+    nodeFilters:
+      - loadbalancer
+options:
+  k3d:
+    wait: true
+    timeout: "180s"
+  kubeconfig:
+    updateDefaultKubeconfig: true   # cria o contexto "k3d-aula13" no ~/.kube/config
+    switchCurrentContext: true
+# O k3s já vem com o que a aula precisa:
+#   - metrics-server  → mede CPU/memória dos pods (kubectl top); o HPA depende dele
+#   - Traefik         → Ingress controller (porta 80 dentro do cluster)
+#   - local-path      → StorageClass padrão: volumes persistentes num diretório do nó
